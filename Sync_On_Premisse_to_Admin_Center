@@ -1,0 +1,325 @@
+## Common reasons to force a sync ##
+
+New user created on-prem and not showing in Microsoft 365.
+Password change or account update not appearing in the cloud.
+Group membership changes not syncing.
+After fixing an Azure AD Connect or connector error.
+
+
+If you're using Azure AD Connect (most common)
+
+Open PowerShell as Administrator on your Azure AD Connect server and run:
+
+## Delta Sync (CHANGES ONLY – recommended) ##
+PowerShellStart-ADSyncSyncCycle -PolicyType Delta
+
+OR
+
+## Simple, reliable “busy/finished” indicator (Get-ADSyncScheduler exposes SyncCycleInProgress for a clean “in progress” signal.) ##
+# Run on the Azure AD Connect server (or via Invoke-Command)
+Import-Module ADSync -ErrorAction Stop
+
+# Start a Delta sync
+Start-ADSyncSyncCycle -PolicyType Delta | Out-Null
+
+# Show a simple spinner until the cycle finishes
+$frames = '/ - \ |'.Split(' ')
+while ((Get-ADSyncScheduler).SyncCycleInProgress) {
+    foreach ($f in $frames) {
+        Write-Host -NoNewline "`rSync cycle running... $f"
+        Start-Sleep -Milliseconds 150
+    }
+}
+Write-Host "`rSync cycle finished.     "
+
+OR
+
+## Show connector run state (more detail) ( This approach is commonly referenced in operations tips and admin articles to “see if the sync is actually running.”) ##
+
+Import-Module ADSync -ErrorAction Stop
+
+Start-ADSyncSyncCycle -PolicyType Delta | Out-Null
+
+do {
+    $status = Get-ADSyncConnectorRunStatus
+    if ($status) {
+        # Show one line per connector (AD, Entra/Microsoft 365)
+        $status | Select-Object ConnectorName, RunState | Format-Table -AutoSize
+    } else {
+        Write-Host "Waiting for connectors to start..."
+    }
+    Start-Sleep -Seconds 2
+} while ((Get-ADSyncScheduler).SyncCycleInProgress)
+
+Write-Host "Sync cycle finished."
+
+
+
+OR
+
+
+## A “fire‑and‑wait” helper you can reuse (This mirrors community recommendations to check SyncCycleInProgress, gracefully wait, then notify when complete.)##
+This function starts a Delta sync, waits safely if one is already running, and prints friendly status as it proceeds.
+
+function Invoke-AADConnectDeltaSync {
+    [CmdletBinding()]
+    param(
+        [int]$PollSeconds = 2
+    )
+
+    Import-Module ADSync -ErrorAction Stop
+
+    # If a cycle is already running, wait for it to finish
+    while ((Get-ADSyncScheduler).SyncCycleInProgress) {
+        Write-Host "Another sync is running... waiting $PollSeconds second(s)..."
+        Start-Sleep -Seconds $PollSeconds
+    }
+
+    # Start new Delta sync
+    Start-ADSyncSyncCycle -PolicyType Delta | Out-Null
+
+    # Live status loop
+    $frames = '/ - \ |'.Split(' ')
+    do {
+        try {
+            $run = $null
+            if (Get-Command Get-ADSyncConnectorRunStatus -ErrorAction SilentlyContinue) {
+                $run = Get-ADSyncConnectorRunStatus
+            }
+            if ($run) {
+                $run | Select-Object ConnectorName, RunState | Format-Table -AutoSize
+            } else {
+                foreach ($f in $frames) {
+                    Write-Host -NoNewline "`rSync cycle running... $f"
+                    Start-Sleep -Milliseconds 150
+                }
+            }
+        } catch {
+            Write-Host "`rSync cycle running..."
+        }
+        Start-Sleep -Seconds $PollSeconds
+    } while ((Get-ADSyncScheduler).SyncCycleInProgress)
+
+    Write-Host "`rSync cycle finished.     "
+}
+
+
+
+
+
+
+
+## Full Sync (COMPLETE sync — slower) ##
+
+PowerShellStart-ADSyncSyncCycle -PolicyType Initial
+
+
+
+
+
+
+If you get an error like "command not recognized"
+
+## Import the module ##
+
+PowerShellImport-Module ADSyncShow more lines
+
+Then run the sync command again.
+
+
+
+
+## To verify the sync status ##
+
+PowerShellGet-ADSyncScheduler``
+
+Or check in Microsoft Entra Admin Center → Monitoring → Provisioning / Directory Sync Status.
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+                                    IF YOU DONT HAVE AZURE AD CONNECT!!
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+Option 1 (Recommended for most environments): Microsoft Entra Cloud Sync
+A lightweight, modern sync agent managed mostly in the cloud.
+✔ When to choose Cloud Sync
+
+You want simpler maintenance (agent only)
+You want better high availability
+You want faster sync cycles
+
+⭐ Microsoft Documentation confirms Cloud Sync setup is done in Entra Admin Center, and involves:
+
+Creating a Cloud Sync configuration
+Installing the Cloud Sync Agent on a domain‑joined server
+ [learn.microsoft.com]
+
+
+How to set up Cloud Sync (Step‑by‑Step)
+➡️ Step 1 — Sign in to Microsoft Entra Admin Center
+
+Go to entra.microsoft.com
+Navigate: Identity → Entra Connect → Cloud Sync
+Click New configuration
+Choose: AD to Microsoft Entra ID sync [learn.microsoft.com]
+
+➡️ Step 2 — Download and Install Cloud Sync Agent
+
+Still under Cloud Sync, go to Agents
+Click Download on‑premises agent
+Accept terms and download the installer
+Install it on a domain‑joined Windows Server 2016+
+ [alitajran.com]
+
+
+➡️ Step 3 — Configure Sync (in the cloud)
+From the Cloud Sync configuration screen:
+
+Select domain
+Enable Password Hash Sync (recommended)
+Configure the 5 sections:
+
+Scoping filters (choose which OUs/users/groups sync)
+Attribute mapping
+Test configuration
+Review defaults
+Enable sync [learn.microsoft.com]
+
+➡️ Step 4 — Enable Sync
+Once you click Enable, sync automatically begins.
+
+⏱️ How to force sync when using Cloud Sync
+Cloud Sync sync logic occurs in the cloud — there is no local PowerShell command like Azure AD Connect.
+Instead:
+
+Go to Entra Admin Center → Entra Connect → Cloud Sync → Provisioning Logs
+Use Restart provisioning or Retry from the cloud interface
+(Cloud Sync does not have Start-ADSyncSyncCycle because the engine runs in Microsoft’s cloud).
+
+
+✅ Option 2: Microsoft Entra Connect (formerly Azure AD Connect)
+Heavier, but still widely used.
+If you choose this route, you must install it first—you cannot force sync without it.
+A step‑by‑step setup guide confirms installation is done via Entra Admin Center → Entra Connect → Download Connect Sync.
+ [activedire...orypro.com], [experts-exchange.com]
+
+When should you install Microsoft Entra Connect instead of Cloud Sync?
+Choose Entra Connect if:
+
+You need device writeback, group writeback, or other advanced features
+You have Exchange hybrid (classic)
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+                  How to Install & Set Up Azure AD Connect (Microsoft Entra Connect)
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+Microsoft officially states that Azure AD Connect (now Entra Connect Sync) must be downloaded from the Microsoft Entra Admin Center, and installed on a domain‑joined Windows Server running Windows Server 2016 or later. [activedire...orypro.com]
+Below is the full, correct installation workflow step‑by‑step.
+
+🧩 1. Prerequisites (Must be ready before installation)
+Microsoft documentation confirms these requirements:
+
+A Microsoft Entra (Azure AD) tenant
+A domain‑joined Windows Server 2016/2019/2022 to install Entra Connect Sync
+A Global Administrator account in Microsoft 365
+A Domain Administrator account in your on‑prem Active Directory
+A routable UPN suffix in on‑prem AD (e.g., @example.com, not @local.local) [activedire...orypro.com]
+
+If your AD uses .local, you must add your real domain (e.g., company.com) as a UPN suffix first (see Step 2 below).
+
+🛠️ 2. Add Your Microsoft 365 Domain as a UPN Suffix in On‑Prem AD
+To sync users successfully, your AD must have the same domain suffix as Microsoft 365 (example: @company.com).
+This setup is required and confirmed in hybrid sync documentation. [experts-exchange.com]
+Steps:
+
+Open Active Directory Domains and Trusts
+Right‑click Active Directory Domains and Trusts at the top
+Select Properties
+Add your Microsoft 365 domain (e.g., company.com)
+Click Add → Apply
+
+After this, convert your users’ UPNs to use the new domain.
+
+💾 3. Download Azure AD Connect / Entra Connect Sync
+Microsoft states the install file is only available via the Entra Admin Center. [activedire...orypro.com]
+Steps:
+
+Go to entra.microsoft.com
+Navigate to:
+Entra ID → Entra Connect → Connect Sync
+Click Download the latest Entra Connect Sync version
+Accept terms and download the .msi installer
+
+This downloads the official AzureADConnect.msi.
+
+🖥️ 4. Install Microsoft Entra Connect Sync
+Steps confirmed by official setup documentation: [activedire...orypro.com]
+Steps:
+
+Run AzureADConnect.msi
+Accept license terms
+Choose Customize (recommended — more control)
+On the Install required components screen → Click Install
+On the User Sign‑in screen → Choose one:
+
+Password Hash Synchronization (PHS) → Recommended for most
+Pass‑through Authentication (PTA)
+
+
+Click Next
+Enter Microsoft 365 Global Admin credentials
+Enter Domain Admin credentials for on‑prem AD
+Select what OUs you want to sync
+Uncheck:
+✔ Start the synchronization process when configuration completes
+(This lets you verify before syncing, recommended by experts) [experts-exchange.com]
+Complete the setup wizard
+
+Installation is done — sync engine is now installed.
+
+🔄 5. Start the First Sync
+Once installed, you can manually trigger the sync.
+Run PowerShell as Administrator on the Entra Connect server:
+🔄 Delta Sync (just changes)
+PowerShellStart-ADSyncSyncCycle -PolicyType DeltaShow more lines
+🔁 Full Sync (complete resync)
+PowerShellStart-ADSyncSyncCycle -PolicyType InitialShow more lines
+(Commands valid only after Entra Connect Sync is installed.)
+
+🧪 6. Test With a Small OU First (Best practice)
+Experts recommend creating a Test OU, moving a few accounts inside, and syncing only that OU before syncing your whole domain. [experts-exchange.com]
+Steps:
+
+Create an OU like: Test AD Sync
+Move 1–3 test accounts into it
+Sync only that OU in the Connect setup
+Trigger a sync
+Confirm users appear in Microsoft 365 / Entra ID → Users
+
+Once everything works, add additional OUs.
+
+🕵️ 7. Verify Sync Status
+Microsoft documentation confirms you can check sync status through:
+PowerShell
+PowerShellGet-ADSyncSchedulerShow more lines
+Portal
+Go to:
+Entra Admin Center → Entra Connect → Connect Sync
+
+🎉 Your Azure AD Connect / Entra Connect Sync is Now Installed
+You now have hybrid identity and directory sync running.
+
+
