@@ -1,0 +1,10 @@
+LOOKING FOR LARGEST FILES OR FOLDERS
+
+## SHOW FIRST 10 LARGEST FILES ##
+
+Get-ChildItem -Path G:\ -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 10
+
+
+## SHOW FIRST 10 LARGEST FOLDERS ##
+
+Get-ChildItem C:\ -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 10
