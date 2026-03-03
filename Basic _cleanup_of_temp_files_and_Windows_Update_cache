@@ -1,0 +1,16 @@
+## Basic cleanup of temp files and Windows Update cache ##
+
+$TempFolders = @("$env:TEMP\*", "$env:SystemRoot\Temp\*", "$env:SystemRoot\SoftwareDistribution\Download\*")
+Remove-Item -Path $TempFolders -Recurse -Force -ErrorAction SilentlyContinue
+
+OR
+
+$TempFolders = @("$env:TEMP*", "$env:SystemRoot\Temp*", "$env:SystemRoot\SoftwareDistribution\Download*")
+foreach ($path in $TempFolders) {
+if (Test-Path -Path $path) {
+# Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue -WhatIf
+Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+} else {
+Write-Verbose "Path not found: $path"
+}
+}
