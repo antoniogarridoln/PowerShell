@@ -70,9 +70,26 @@ Select-Object HostName, Site, IPv4Address
 
 Get-ADGroupMember "Domain Admins"
 
+Mostrar mais detalhes (melhor para análise)
+
+Get-ADGroupMember "Domain Admins" | 
+Get-ADUser -Property DisplayName, Enabled |
+Select Name, DisplayName, Enabled
 
 
 
+Ver membros indiretos (MUITO IMPORTANTE) - Às vezes existem grupos dentro de “Domain Admins”
+Get-ADGroupMember "Domain Admins" -Recursive
 
+
+Get-ADGroupMember "Domain Admins" -Recursive | 
+Select Name, ObjectClass
+
+
+Ver quando foi a última vez que logaram
+
+Get-ADGroupMember "Domain Admins" -Recursive | 
+Get-ADUser -Property LastLogonDate |
+Select Name, LastLogonDate
 
 
