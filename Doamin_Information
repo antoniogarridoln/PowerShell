@@ -1,0 +1,18 @@
+## To know full domain name:
+
+(Get-ADDomain).DNSRoot
+or
+$env:USERDNSDOMAIN
+
+
+
+## To know Distinguished Name (DN)
+
+(Get-ADDomain).DistinguishedName
+
+## To know DNS Names on Domain
+
+Resolve-DnsName -Type NS cmack.local
+
+
+
