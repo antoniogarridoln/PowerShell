@@ -14,3 +14,15 @@ Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
 Write-Verbose "Path not found: $path"
 }
 }
+
+
+
+
+# Clear temporary files and check disk usage
+
+Write-Host "Cleaning system and user temp folders..."
+Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "Current Disk Usage for C Drive:"
+Get-PSDrive C | Select-Object @{N='Used(GB)';E={[math]::round($_.Used/1GB,2)}}, @{N='Free(GB)';E={[math]::round($_.Free/1GB,2)}}
