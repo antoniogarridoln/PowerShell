@@ -1,0 +1,90 @@
+Esse erro é clássico de limite de path do Windows (260 caracteres) + OneDrive. E você está certo: sair renomeando pastas não é viável em ambiente corporativo.
+
+
+
+Passo a passo:
+Clique no ícone do OneDrive
+Settings → Account → Unlink this PC
+Faça login novamente
+Quando pedir o local → escolha:
+C:\OD
+
+✔️ Isso sozinho já resolve 90% dos casos
+
+
+
+
+Solução 2 — Habilitar suporte a Long Paths no Windows
+
+Windows moderno suporta mais que 260 caracteres, mas nem sempre está ativado.
+
+✔️ Via GPO:
+Computer Configuration → Administrative Templates → System → Filesystem
+Enable Win32 long paths = Enabled
+✔️ Via Registry (rápido):
+
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+-Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+
+⚠️ Importante:
+
+Reiniciar o computador
+Nem todos apps respeitam isso (OneDrive às vezes ainda limita)
+
+
+
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
+
+
+Depois confirme:
+
+
+Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled"
+
+
+O resultado esperado é:
+
+LongPathsEnabled : 1
+
+Depois reinicie o computador.
+
+
+
+
+
+O registry que você está alterando:
+
+HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+HKLM (HKEY_LOCAL_MACHINE) = afeta todo o computador
+Ou seja:
+✔️ Vale para todos os usuários
+✔️ Requer permissão de administrador
+✔️ Ideal aplicar via GPO ou Intune
+🧠 Impacto real
+
+Após habilitar:
+
+Windows passa a suportar paths > 260 caracteres
+Funciona para:
+Apps modernos
+Scripts
+APIs atualizadas
+
+⚠️ Porém:
+
+Alguns apps (como o próprio OneDrive em certos cenários) ainda têm limitações próprias
+
+
+
+
+
+Via GPO (melhor prática MSP)
+Computer Configuration 
+→ Administrative Templates 
+→ System 
+→ Filesystem 
+→ Enable Win32 long paths = Enabled
+✔️ Via Intune
+Settings Catalog
+Search: Long Paths
+Enable
