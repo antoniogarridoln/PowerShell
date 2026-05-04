@@ -1,0 +1,12 @@
+##Get all profiles in the computer:
+
+Get-CimInstance Win32_UserProfile | Select LocalPath, SID
+
+
+
+## Removing profile (agarrido)
+
+Get-CimInstance Win32_UserProfile | Where-Object {
+    $_.LocalPath -like "*agarrido*"
+} | Remove-CimInstance
+
