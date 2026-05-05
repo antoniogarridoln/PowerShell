@@ -1,0 +1,31 @@
+## Add user to Admin Local Group
+
+Add-LocalGroupMember -Group "Administrators" -Member "garrido"
+
+
+
+## Add user to Admin Local Group (Domain User)
+DOMINIO\user
+
+Add-LocalGroupMember -Group "Administrators" -Member "garrido\antonio"
+
+or
+
+Add-LocalGroupMember -Group "Administrators" -Member "antonio@garrido.local"
+
+
+## Add user to Admin Local Group (Entra ID user)
+Allaways usee AzureAD\
+
+Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\antonio@garrido.com"
+
+
+
+
+## To validate user on Admin Group
+
+Get-LocalGroupMember -Group "Administrators"
+
+Or
+
+Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\Global Administrator"
