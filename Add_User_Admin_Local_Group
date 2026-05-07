@@ -1,10 +1,10 @@
-## Add user to Admin Local Group
+## Add existing user to Admin Local Group
 
 Add-LocalGroupMember -Group "Administrators" -Member "garrido"
 
 
 
-## Add user to Admin Local Group (Domain User)
+## Add existing user to Admin Local Group (Domain User)
 DOMINIO\user
 
 Add-LocalGroupMember -Group "Administrators" -Member "garrido\antonio"
@@ -14,7 +14,7 @@ or
 Add-LocalGroupMember -Group "Administrators" -Member "antonio@garrido.local"
 
 
-## Add user to Admin Local Group (Entra ID user)
+## Add existing user to Admin Local Group (Entra ID user)
 Allaways usee AzureAD\
 
 Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\antonio@garrido.com"
@@ -29,3 +29,18 @@ Get-LocalGroupMember -Group "Administrators"
 Or
 
 Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\Global Administrator"
+
+
+
+
+## Create a New USer and add on Adminstrator local group
+
+Add-LocalGroupMember -Group "Administrators" -Member "garrido"
+"IT@hbspca.com"
+
+
+Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\IT@hbspca.com"
+
+Add-LocalGroupMember -Group "Administrators" -Member "matt"
+
+net localgroup Administrators "matt" /add
