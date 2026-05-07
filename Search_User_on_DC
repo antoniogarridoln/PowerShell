@@ -1,0 +1,4 @@
+## To search user on DC and see when user was created
+
+Get-ADUser -Filter {Name -like "*AGarrido*"} -Properties whenCreated |
+Select Name, SamAccountName, whenCreated
