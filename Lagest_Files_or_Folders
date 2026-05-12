@@ -2,9 +2,23 @@ LOOKING FOR LARGEST FILES OR FOLDERS
 
 ## SHOW FIRST 10 LARGEST FILES ##
 
-Get-ChildItem -Path G:\ -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 10
+Get-ChildItem -Path C:\ -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 10
 
 
 ## SHOW FIRST 10 LARGEST FOLDERS ##
 
 Get-ChildItem C:\ -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 10
+
+
+
+#### SHOW FIRST 10 LARGEST FILES #### NEW !!!
+
+Get-ChildItem -Path "C:\" -Recurse -File -ErrorAction SilentlyContinue |
+Sort-Object Length -Descending |
+Select-Object -First 10 |
+ForEach-Object {
+    Write-Host "File Name : $($_.Name)"
+    Write-Host "Size      : $("{0:N2} GB" -f ($_.Length / 1GB))"
+    Write-Host "Full Path : $($_.FullName)"
+    Write-Host ""
+}
