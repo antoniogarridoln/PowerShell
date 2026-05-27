@@ -1,0 +1,5 @@
+**##Add New User With Password on Local Administrators Group
+
+net user audcomp "TestPassword123!" /add
+net localgroup administrators audcomp /add
+wmic UserAccount where Name='audcomp' set PasswordExpires=False
