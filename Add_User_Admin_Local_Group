@@ -39,6 +39,10 @@ Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\antonio@garrido.co
 
 **## To validate user on Admin Group**
 
+Get-LocalUser
+
+or
+
 Get-LocalGroupMember -Group "Administrators"
 
 Or
@@ -47,7 +51,7 @@ Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\Global Administrat
 
 ============================================================================================================
 
-
+SAMPLE:
 
 Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\IT@hbspca.com"
 
