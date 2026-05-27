@@ -1,10 +1,25 @@
-## Add existing user to Admin Local Group
+**## Add existing user to Admin Local Group**
 
 Add-LocalGroupMember -Group "Administrators" -Member "garrido"
 
+============================================================================================================
 
+**## Add new user and password to Admin Local Group**
 
-## Add existing user to Admin Local Group (Domain User)
+$password = ConvertTo-SecureString "TestPassword123!" -AsPlainText -Force
+
+New-LocalUser `
+    -Name "antonio" `
+    -Password $password `
+    -FullName "Antonio Garrido" `
+    -Description "Local Administrator Account" `
+    -PasswordNeverExpires
+
+Add-LocalGroupMember -Group "Administrators" -Member "antonio"
+
+============================================================================================================
+
+**## Add existing user to Admin Local Group (Domain User)**
 DOMINIO\user
 
 Add-LocalGroupMember -Group "Administrators" -Member "garrido\antonio"
@@ -13,16 +28,16 @@ or
 
 Add-LocalGroupMember -Group "Administrators" -Member "antonio@garrido.local"
 
+============================================================================================================
 
 ## Add existing user to Admin Local Group (Entra ID user)
 Allaways usee AzureAD\
 
 Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\antonio@garrido.com"
 
+============================================================================================================
 
-
-
-## To validate user on Admin Group
+**## To validate user on Admin Group**
 
 Get-LocalGroupMember -Group "Administrators"
 
@@ -30,13 +45,8 @@ Or
 
 Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\Global Administrator"
 
+============================================================================================================
 
-
-
-## Create a New USer and add on Adminstrator local group
-
-Add-LocalGroupMember -Group "Administrators" -Member "garrido"
-"IT@hbspca.com"
 
 
 Add-LocalGroupMember -Group "Administrators" -Member "AzureAD\IT@hbspca.com"
