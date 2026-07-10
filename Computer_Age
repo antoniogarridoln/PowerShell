@@ -1,0 +1,33 @@
+## Complete Hardware Report ##
+
+
+
+$BIOS = Get-CimInstance Win32_BIOS
+$CS = Get-CimInstance Win32_ComputerSystem
+$OS = Get-CimInstance Win32_OperatingSystem
+
+$Age = (Get-Date) - $BIOS.ReleaseDate
+
+[PSCustomObject]@{
+    ComputerName = $env:COMPUTERNAME
+    Manufacturer = $CS.Manufacturer
+    Model        = $CS.Model
+    SerialNumber = $BIOS.SerialNumber
+    BIOSDate     = $BIOS.ReleaseDate
+    ApproxAge    = "{0} years, {1} months" -f `
+                    [math]::Floor($Age.Days/365),
+                    [math]::Floor(($Age.Days%365)/30)
+    WindowsInstalled = $OS.InstallDate
+}
+
+
+
+## Example output: ## 
+
+ComputerName     : BCCHC-LT-LN-202
+Manufacturer     : Lenovo
+Model            : ThinkPad T14 Gen 3
+SerialNumber     : PF3XXXXX
+BIOSDate         : 2022-05-10
+ApproxAge        : 4 years, 2 months
+WindowsInstalled : 2025-01-14
