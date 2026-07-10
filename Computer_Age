@@ -31,3 +31,16 @@ SerialNumber     : PF3XXXXX
 BIOSDate         : 2022-05-10
 ApproxAge        : 4 years, 2 months
 WindowsInstalled : 2025-01-14
+
+
+
+## Calculate Computer Age from BIOS Date ##
+
+
+$BIOS = (Get-CimInstance Win32_BIOS).ReleaseDate
+$Age = (Get-Date) - $BIOS
+
+"{0} years, {1} months, {2} days" -f `
+[math]::Floor($Age.Days / 365),
+[math]::Floor(($Age.Days % 365) / 30),
+(($Age.Days % 365) % 30)
