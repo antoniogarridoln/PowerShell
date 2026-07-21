@@ -24,5 +24,45 @@ Write-Host "Cleaning system and user temp folders..."
 Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 
+
+# Check disk usage C Drive
+
 Write-Host "Current Disk Usage for C Drive:"
 Get-PSDrive C | Select-Object @{N='Used(GB)';E={[math]::round($_.Used/1GB,2)}}, @{N='Free(GB)';E={[math]::round($_.Free/1GB,2)}}
+
+
+# Check disk usage Multiples Drive
+
+$Drives = "C","F","G"
+
+$Drives | ForEach-Object {
+
+    $Disk = Get-PSDrive -Name $_ -ErrorAction SilentlyContinue
+
+    if ($Disk) {
+
+        $Total = $Disk.Used + $Disk.Free
+
+        [PSCustomObject]@{
+            Drive        = "$($_):"
+            'Total (GB)' = [math]::Round($Total / 1GB,2)
+            'Used (GB)'  = [math]::Round($Disk.Used / 1GB,2)
+            'Free (GB)'  = [math]::Round($Disk.Free / 1GB,2)
+            'Used (%)'   = [math]::Round(($Disk.Used / $Total) * 100,2)
+            'Free (%)'   = [math]::Round(($Disk.Free / $Total) * 100,2)
+        }
+
+    } else {
+
+        [PSCustomObject]@{
+            Drive        = "$($_):"
+            'Total (GB)' = "N/A"
+            'Used (GB)'  = "N/A"
+            'Free (GB)'  = "N/A"
+            'Used (%)'   = "N/A"
+            'Free (%)'   = "N/A"
+        }
+
+    }
+
+} | Format-Table -AutoSize
