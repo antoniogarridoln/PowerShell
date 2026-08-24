@@ -1,0 +1,21 @@
+## Restart immediately remote computer ##
+
+shutdown /r /f /m \\BCCHC-LT04-2026 /t 0
+
+	• /r → Restart
+	• /f → Force (forces programs to close)
+	• /m \\BCCHC-LT04-2026 → Remote computer
+	• /t 0 → Executes immediately, without countdown
+
+
+If need Shutdown change /r for /s
+
+===================================================================================
+
+## Force restart with timer and message to user ##
+
+
+shutdown /r /f /m \\BCCHC-LT04-2026 /t 600 /c "IT Maintenance: Please save all your work and close any open applications. Your computer will automatically restart in 10 minutes. If it is convenient, you may also restart your computer now. Thank you for your cooperation."
+
+
+T300 = 5 minutes
