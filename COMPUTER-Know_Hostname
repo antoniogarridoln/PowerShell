@@ -1,0 +1,43 @@
+## Discover hostname from IP Address ##
+
+Resolve-DnsName 172.16.68.164
+
+
+Answer looks like:
+
+
+Name                           Type   TTL   Section   NameHost
+----                           ----   ---   -------   --------
+100.1.168.192.in-addr.arpa     PTR    1200  Answer    PC-USER01.company.local
+
+
+==================================================================================
+
+## From CMD ##
+
+nslookup 192.168.1.100
+
+
+Answer looks loke
+
+Server:  DC01.company.local
+Address: 192.168.1.10
+
+Name:    PC-USER01.company.local
+Address: 192.168.1.100
+
+===================================================================================
+## Or ##
+
+nbtstat -A 192.168.1.100
+
+Look for the line:
+
+PC-USER01       <00>  UNIQUE  Registered
+
+===================================================================================
+
+
+
+
+
