@@ -33,7 +33,7 @@ Get-PSDrive C | Select-Object @{N='Used(GB)';E={[math]::round($_.Used/1GB,2)}}, 
 
 # Check disk usage Multiples Drive
 
-$Drives = "C","F","G"
+$Drives = "C","D","E","F","G"
 
 $Drives | ForEach-Object {
 
