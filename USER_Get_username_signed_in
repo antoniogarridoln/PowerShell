@@ -1,0 +1,26 @@
+## Get username signed in on the specific device (Domain Admin credentials needed) ##
+
+Get-WmiObject Win32_ComputerSystem -ComputerName AUD-SALES-02 |
+Format-List Name,UserName
+
+
+## Get username signed in on the specific device (Domain Admin credentials needed) - REQUEST CREDENTIAL TO ELEVATE ##
+
+$cred = Get-Credential Get-WmiObject ` -Class Win32_ComputerSystem ` -ComputerName "AUD-SALES-02" ` -Credential $cred | Format-List Name,UserName
+
+Answer:
+Name          UserName
+----          --------
+AUD-SALES-02  AUDCOMP\jsmith
+
+
+
+OR
+
+##To get sesseios opened ##
+
+quser /server:AUD-SALES-02
+
+Answer:
+ USERNAME       SESSIONNAME     ID   STATE   IDLE TIME
+ jsmith         console          1   Active      none
