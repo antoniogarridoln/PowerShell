@@ -1,0 +1,10 @@
+## CHECK UPDATES IN THE LAST 90 DAYS ##
+
+
+Get-HotFix |
+    Where-Object { $_.InstalledOn -ge (Get-Date).AddDays(-90) } |
+    Sort-Object InstalledOn -Descending |
+    Format-Table InstalledOn, HotFixID, Description, InstalledBy -AutoSize
+
+
+
