@@ -1,0 +1,34 @@
+## Restart common VSS-related services installed  ##
+
+$Services = 'VSS', 'swprv', 'SQLWriter', 'CryptSvc', 'Winmgmt'
+
+foreach ($Name in $Services) {
+    $Service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+
+    if (-not $Service) {
+        Write-Host "$Name - Not installed" -ForegroundColor Gray
+        continue
+    }
+
+    try {
+        if ($Service.Status -eq 'Running') {
+            # No -Force: active dependent services will prevent the restart.
+            Restart-Service -Name $Name -ErrorAction Stop
+            Write-Host "$Name - Restarted" -ForegroundColor Green
+        }
+        elseif ($Service.Status -eq 'Stopped') {
+            Start-Service -Name $Name -ErrorAction Stop
+            Write-Host "$Name - Started" -ForegroundColor Green
+        }
+        else {
+            Write-Warning "$Name - Status: $($Service.Status). Check manually."
+        }
+    }
+    catch {
+        Write-Warning "$Name - $($_.Exception.Message)"
+    }
+}
+
+Start-Sleep -Seconds 5
+vssadmin list writers
+
